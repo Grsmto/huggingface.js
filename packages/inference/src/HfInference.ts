@@ -26,6 +26,11 @@ export interface Options {
 	 * (Default: false) Boolean. If the model is not ready, wait for it instead of receiving 503. It limits the number of requests required to get your inference done. It is advised to only set this flag to true after receiving a 503 error as it will limit hanging in your application to known places.
 	 */
 	wait_for_model?: boolean;
+
+	/**
+	 * Custom headers to send with the request.
+	 */
+	headers?: Record<string, string>;
 }
 
 export interface Args {
@@ -1054,7 +1059,8 @@ export class HfInference {
 		const mergedOptions = { ...this.defaultOptions, ...options };
 		const { model, ...otherArgs } = args;
 
-		const headers: Record<string, string> = {};
+		let headers: Record<string, string> = {};
+
 		if (this.apiKey) {
 			headers["Authorization"] = `Bearer ${this.apiKey}`;
 		}
@@ -1074,6 +1080,8 @@ export class HfInference {
 				headers["X-Load-Model"] = "0";
 			}
 		}
+
+		headers = { ...headers, ...this.defaultOptions?.headers };
 
 		if (!model && !this.endpointUrl) {
 			throw new Error("Model is required for Inference API");
